@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 #[cfg(all(feature = "json", any(feature = "tls", feature = "tls-native")))]
 // test temporarily disabled because httpbin is down / we need to figure out
 // how to eliminate the external dependency.
