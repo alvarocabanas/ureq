@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 #[cfg(all(feature = "json", any(feature = "tls", feature = "tls-native")))]
 // test temporarily disabled because httpbin is down / we need to figure out
 // how to eliminate the external dependency.
@@ -166,4 +168,48 @@ fn ipv6_addr_in_dns_name() {
     assert!(
         !matches!(resp, Err(ureq::Error::Transport(ref t)) if t.kind() == ureq::ErrorKind::Dns)
     );
+}
+
+// This tests that IPv6 addresses as host names work.
+// This is a regression test for passing the host name to `rustls::ServerName::try_from(host_name)`
+#[test]
+fn timeout_general() {
+    let agent = ureq::builder()
+        .timeout(Duration::from_secs(5))
+        .build();
+
+    let start = Instant::now();
+    //let _ = agent.get("http://httpbin.org/delay/20").call();
+    let _ = agent.get("http://httpbin.org/delay/20").call();
+    let duration = start.elapsed();
+
+    assert!(duration.as_secs() < 10);
+}
+
+// This tests that IPv6 addresses as host names work.
+// This is a regression test for passing the host name to `rustls::ServerName::try_from(host_name)`
+#[test]
+fn timeout_socket_connection() {
+    let agent = ureq::builder()
+        .timeout(Duration::from_secs(5))
+        .build();
+
+    let start = Instant::now();
+    //let _ = agent.get("http://httpbin.org/delay/20").call();
+    let _ = agent.get("http://www.google.com:81").call();
+    let duration = start.elapsed();
+
+    assert!(duration.as_secs() > 10);
+
+
+    let agent = ureq::builder()
+        .timeout_connect(Duration::from_secs(5))
+        .build();
+
+    let start = Instant::now();
+    //let _ = agent.get("http://httpbin.org/delay/20").call();
+    let _ = agent.get("http://www.google.com:81").call();
+    let duration = start.elapsed();
+
+    assert!(duration.as_secs() < 10);
 }
